@@ -1,27 +1,12 @@
 "use client"
 
-import { useEffect, useState } from "react"
-import { fetchTrendingRepos, Repo } from "@/lib/github"
+import { Repo } from "@/lib/github"
 
-export function TrendingRepos() {
-  const [repos, setRepos] = useState<Repo[]>([])
-  const [loading, setLoading] = useState(true)
-
-  useEffect(() => {
-    fetchTrendingRepos()
-      .then((data) => {
-        setRepos(data)
-        setLoading(false)
-      })
-      .catch(() => setLoading(false))
-  }, [])
-
-  if (loading) {
+export function TrendingRepos({ repos }: { repos: Repo[] }) {
+  if (repos.length === 0) {
     return (
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {[...Array(6)].map((_, i) => (
-          <div key={i} className="h-32 animate-pulse rounded-xl bg-zinc-900" />
-        ))}
+      <div className="rounded-xl border border-zinc-800 bg-zinc-900 p-8 text-center">
+        <p className="text-zinc-400">No trending repos found.</p>
       </div>
     )
   }

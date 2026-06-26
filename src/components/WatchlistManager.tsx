@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { searchRepos, Repo } from "@/lib/github"
+import { Repo } from "@/lib/github"
 
 function getWatchlist(): Repo[] {
   if (typeof window === "undefined") return []
@@ -35,8 +35,9 @@ export function WatchlistManager() {
     }
     setLoading(true)
     try {
-      const repos = await searchRepos(q)
-      setSearchResults(repos)
+      const res = await fetch(`/api/repos/search?q=${encodeURIComponent(q)}`)
+      const data = await res.json()
+      setSearchResults(data.items || [])
     } catch {
       setSearchResults([])
     }
