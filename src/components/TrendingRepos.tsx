@@ -1,25 +1,16 @@
 "use client"
 
 import { useEffect, useState } from "react"
-
-interface Repo {
-  id: string
-  fullName: string
-  description: string
-  stars: number
-  language: string
-  url: string
-}
+import { fetchTrendingRepos, Repo } from "@/lib/github"
 
 export function TrendingRepos() {
   const [repos, setRepos] = useState<Repo[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    fetch("/api/repos/trending")
-      .then((r) => r.json())
+    fetchTrendingRepos()
       .then((data) => {
-        setRepos(data.repos || [])
+        setRepos(data)
         setLoading(false)
       })
       .catch(() => setLoading(false))

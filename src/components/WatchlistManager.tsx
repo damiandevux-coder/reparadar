@@ -1,32 +1,30 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import { searchRepos, Repo } from "@/lib/github"
 
-interface Repo {
-  id: string
-  fullName: string
-  description: string
-  stars: number
-  language: string
-  url: string
+function getWatchlist(): Repo[] {
+  if (typeof window === "undefined") return []
+  try {
+    return JSON.parse(localStorage.getItem("reporadar_watchlist") || "[]")
+  } catch {
+    return []
+  }
 }
 
-interface Watchlist {
-  id: string
-  name: string
-  repos: Repo[]
+function saveWatchlist(repos: Repo[]) {
+  if (typeof window === "undefined") return
+  localStorage.setItem("reporadar_watchlist", JSON.stringify(repos))
 }
 
 export function WatchlistManager() {
-  const [watchlists, setWatchlists] = useState<Watchlist[]>([])
+  const [watchlist, setWatchlist] = useState<Repo[]>([])
   const [search, setSearch] = useState("")
   const [searchResults, setSearchResults] = useState<Repo[]>([])
   const [loading, setLoading] = useState(false)
 
   useEffect(() => {
-    fetch("/api/watchlists")
-      .then((r) => r.json())
-      .then((data) => setWatchlists(data.watchlists || []))
+    setWatchlist(getWatchlist())
   }, [])
 
   const handleSearch = async (q: string) => {
@@ -37,34 +35,29 @@ export function WatchlistManager() {
     }
     setLoading(true)
     try {
-      const res = await fetch(`/api/repos/search?q=${encodeURIComponent(q)}`)
-      const data = await res.json()
-      setSearchResults(data.repos || [])
+      const repos = await searchRepos(q)
+      setSearchResults(repos)
     } catch {
       setSearchResults([])
     }
     setLoading(false)
   }
 
-  const addRepo = async (repo: Repo) => {
-    await fetch("/api/watchlists/repos", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ repo }),
-    })
-    // Refresh
-    const res = await fetch("/api/watchlists")
-    const data = await res.json()
-    setWatchlists(data.watchlists || [])
+  const addRepo = (repo: Repo) => {
+    const current = getWatchlist()
+    if (!current.find((r) => r.id === repo.id)) {
+      const updated = [...current, repo]
+      saveWatchlist(updated)
+      setWatchlist(updated)
+    }
     setSearch("")
     setSearchResults([])
   }
 
-  const removeRepo = async (repoId: string) => {
-    await fetch(`/api/watchlists/repos/${repoId}`, { method: "DELETE" })
-    const res = await fetch("/api/watchlists")
-    const data = await res.json()
-    setWatchlists(data.watchlists || [])
+  const removeRepo = (repoId: string) => {
+    const updated = getWatchlist().filter((r) => r.id !== repoId)
+    saveWatchlist(updated)
+    setWatchlist(updated)
   }
 
   return (
@@ -103,8 +96,8 @@ export function WatchlistManager() {
         )}
       </div>
 
-      {/* Watchlists */}
-      {watchlists.length === 0 ? (
+      {/* Watchlist */}
+      {watchlist.length === 0 ? (
         <div className="rounded-xl border border-zinc-800 bg-zinc-900 p-8 text-center">
           <p className="text-zinc-400">No repos in your watchlist yet.</p>
           <p className="mt-2 text-sm text-zinc-500">
@@ -112,43 +105,41 @@ export function WatchlistManager() {
           </p>
         </div>
       ) : (
-        watchlists.map((wl) => (
-          <div key={wl.id} className="rounded-xl border border-zinc-800 bg-zinc-900 p-6">
-            <h2 className="mb-4 text-xl font-semibold">{wl.name}</h2>
-            <div className="space-y-3">
-              {wl.repos.map((repo) => (
-                <div
-                  key={repo.id}
-                  className="flex items-center justify-between rounded-lg bg-zinc-950 p-4"
-                >
-                  <div>
-                    <a
-                      href={repo.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="font-medium text-white hover:text-orange-400"
-                    >
-                      {repo.fullName}
-                    </a>
-                    <p className="mt-1 text-sm text-zinc-400">
-                      {repo.description}
-                    </p>
-                    <div className="mt-2 flex items-center gap-3 text-xs text-zinc-500">
-                      <span>⭐ {repo.stars.toLocaleString()}</span>
-                      {repo.language && <span>● {repo.language}</span>}
-                    </div>
-                  </div>
-                  <button
-                    onClick={() => removeRepo(repo.id)}
-                    className="rounded bg-zinc-800 px-3 py-1 text-sm text-zinc-400 hover:bg-red-900/50 hover:text-red-400"
+        <div className="rounded-xl border border-zinc-800 bg-zinc-900 p-6">
+          <h2 className="mb-4 text-xl font-semibold">My Watchlist ({watchlist.length})</h2>
+          <div className="space-y-3">
+            {watchlist.map((repo) => (
+              <div
+                key={repo.id}
+                className="flex items-center justify-between rounded-lg bg-zinc-950 p-4"
+              >
+                <div>
+                  <a
+                    href={repo.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="font-medium text-white hover:text-orange-400"
                   >
-                    Remove
-                  </button>
+                    {repo.fullName}
+                  </a>
+                  <p className="mt-1 text-sm text-zinc-400">
+                    {repo.description}
+                  </p>
+                  <div className="mt-2 flex items-center gap-3 text-xs text-zinc-500">
+                    <span>⭐ {repo.stars.toLocaleString()}</span>
+                    {repo.language && <span>● {repo.language}</span>}
+                  </div>
                 </div>
-              ))}
-            </div>
+                <button
+                  onClick={() => removeRepo(repo.id)}
+                  className="rounded bg-zinc-800 px-3 py-1 text-sm text-zinc-400 hover:bg-red-900/50 hover:text-red-400"
+                >
+                  Remove
+                </button>
+              </div>
+            ))}
           </div>
-        ))
+        </div>
       )}
     </div>
   )

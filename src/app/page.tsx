@@ -1,11 +1,7 @@
 import { Navbar } from "@/components/Navbar"
 import { TrendingRepos } from "@/components/TrendingRepos"
-import { getServerSession } from "next-auth"
-import { authOptions } from "@/lib/auth"
 
-export default async function Home() {
-  const session = await getServerSession(authOptions)
-
+export default function Home() {
   return (
     <div className="min-h-screen bg-zinc-950 text-white">
       <Navbar />
@@ -21,18 +17,12 @@ export default async function Home() {
             Monitor GitHub repositories, discover trending projects, and never miss
             the next big thing in tech.
           </p>
-          {session ? (
-            <a
-              href="/dashboard"
-              className="inline-block rounded-lg bg-orange-500 px-8 py-3 font-medium text-white hover:bg-orange-600"
-            >
-              Go to Dashboard
-            </a>
-          ) : (
-            <p className="text-zinc-500">
-              Sign in to create your watchlists
-            </p>
-          )}
+          <a
+            href="/dashboard"
+            className="inline-block rounded-lg bg-orange-500 px-8 py-3 font-medium text-white hover:bg-orange-600"
+          >
+            Go to Dashboard
+          </a>
         </div>
       </section>
 

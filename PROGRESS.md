@@ -26,8 +26,8 @@
 - [x] Trending repos on homepage
 
 ## Hour 3-4: Deploy
-- [ ] Commit to GitHub
-- [ ] Deploy to Vercel
+- [x] Commit to GitHub: https://github.com/damiandevux-coder/reparadar
+- [ ] Deploy to Vercel (need token/auth)
 - [ ] Test live site
 
 ## Hour 4-7: Polish & Features
