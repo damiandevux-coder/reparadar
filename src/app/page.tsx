@@ -1,10 +1,7 @@
 import { Navbar } from "@/components/Navbar"
 import { TrendingRepos } from "@/components/TrendingRepos"
-import { fetchTrendingRepos } from "@/lib/github"
 
-export default async function Home() {
-  const repos = await fetchTrendingRepos()
-
+export default function Home() {
   return (
     <div className="min-h-screen bg-zinc-950 text-white">
       <Navbar />
@@ -33,7 +30,7 @@ export default async function Home() {
       <section className="px-4 py-16">
         <div className="mx-auto max-w-6xl">
           <h2 className="mb-8 text-2xl font-bold">🔥 Trending Now</h2>
-          <TrendingRepos repos={repos} />
+          <TrendingRepos />
         </div>
       </section>
     </div>
